@@ -1,0 +1,90 @@
+
+---
+
+## What PostgreSQL actually is
+
+PostgreSQL is a **database server** — a program that runs in the background on your computer, listening for connections. It's not just a file or a library. It's a full server process, just like a web server. Multiple clients (your terminal, your Node/Python app, pgAdmin) can all connect to it at the same time.
+**PostgreSQL instance → Databases → Schemas → Tables**
+---
+
+## Installation
+
+**Mac (Homebrew):**
+```bash
+brew install postgresql@16
+```
+
+## Starting and stopping the server
+
+On Mac with Homebrew:
+```bash
+brew services start postgresql@16   # start and keep running on login
+brew services stop postgresql@16
+brew services restart postgresql@16
+
+pg_isready
+# Output: localhost:5432 - accepting connections  ✓
+```
+
+---
+
+## How connections actually work
+
+PostgreSQL listens on **port 5432** by default. Every connection has these five parameters:
+
+| Parameter | What it is | Default |
+|---|---|---|
+| Host | where the server is | `localhost` |
+| Port | which port | `5432` |
+| Database | which database to connect to | same as username |
+| Username | who's connecting | your OS username |
+| Password | auth | depends on config |
+
+
+**Connecting:**
+```bash
+psql postgres              # connect to the 'postgres' default database
+psql -U postgres           # connect as the 'postgres' superuser
+psql -U myuser -d mydb     # connect as myuser to database mydb
+psql -h localhost -p 5432 -U myuser -d mydb   # full explicit connection
+```
+
+You can also use a **connection string** (very common in apps):
+```bash
+psql postgresql://myuser:mypassword@localhost:5432/mydb
+```
+
+**Once inside psql**, these are the meta-commands (they start with `\` and are not SQL):
+```
+\l                  list all databases
+\c mydb             switch to (connect to) a different database
+\dt                 list all tables in current database
+\d tablename        describe a table (columns, types, constraints)
+\du                 list all users/roles
+\conninfo           show current connection details
+\q                  quit
+\?                  help for all backslash commands
+```
+
+That last command is the best sanity check — if it returns your username and database name, your connection is fully working.
+
+## The most common beginner issues
+
+**"Connection refused"** — the server isn't running. Do `pg_isready` and start it.
+
+**"Role does not exist"** — you're trying to connect as a user that wasn't created. Try `-U postgres` first.
+
+**"Database does not exist"** — create it with `createdb mydb` or inside psql.
+
+**"Password authentication failed"** — wrong password, or the user doesn't have a password set. Reset it inside psql with `ALTER USER myuser WITH PASSWORD 'newpassword';`
+
+**"Peer authentication failed"** — this happens on Linux when connecting locally. It means Postgres expects your OS username to match the DB username. Either connect as the matching user or change `pg_hba.conf` to use `md5` instead of `peer`.
+
+
+
+
+# exit psql
+\q
+
+# stop postgres server
+brew services stop postgresql
